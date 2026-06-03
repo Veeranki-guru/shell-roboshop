@@ -1,6 +1,6 @@
 #!/bin/bash
 
-AMI_ID="ami-0b4f379183e5706b9"
+AMI_ID="ami-0220d79f3f480ecf5"
 SG_ID="sg-0405c200fbe5a40ab" # replace with your SG ID
 ZONE_ID="Z06900471UVWKCI0MAROU" # replace with your ID
 DOMAIN_NAME="rajesh86s.online"
