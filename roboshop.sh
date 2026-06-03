@@ -2,8 +2,8 @@
 
 AMI_ID="ami-0b4f379183e5706b9"
 SG_ID="sg-0405c200fbe5a40ab" # replace with your SG ID
-ZONE_ID="Z0948150OFPSYTNVYZOY" # replace with your ID
-DOMAIN_NAME="daws86s.fun"
+ZONE_ID="Z06900471UVWKCI0MAROU" # replace with your ID
+DOMAIN_NAME="rajesh86s.online"
 
 for instance in $@ # mongodb redis mysql
 do
