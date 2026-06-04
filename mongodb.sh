@@ -1,46 +1,58 @@
 #!/bin/bash
 
 USERID=$(id -u)
+
 R="\e[31m"
 G="\e[32m"
 Y="\e[33m"
 N="\e[0m"
 
 LOGS_FOLDER="/var/log/shell-roboshop"
-SCRIPT_NAME=$( echo $0 | cut -d "." -f1 )
-LOG_FILE="$LOGS_FOLDER/$SCRIPT_NAME.log" # /var/log/shell-script/16-logs.log
+SCRIPT_NAME=$(basename "$0" .sh)
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
 
-mkdir -p $LOGS_FOLDER
-echo "Script started executed at: $(date)" | tee -a $LOG_FILE
+LOG_FILE="$LOGS_FOLDER/$SCRIPT_NAME.log"
 
-if [ $USERID -ne 0 ]; then
-    echo "ERROR:: Please run this script with root privelege"
-    exit 1 # failure is other than 0
+mkdir -p "$LOGS_FOLDER"
+
+echo "Script started executing at: $(date)" | tee -a "$LOG_FILE"
+
+if [ "$USERID" -ne 0 ]; then
+    echo -e "${R}ERROR: Please run this script with root privileges${N}"
+    exit 1
 fi
 
-VALIDATE(){ # functions receive inputs through args just like shell script args
-    if [ $1 -ne 0 ]; then
-        echo -e "$2 ... $R FAILURE $N" | tee -a $LOG_FILE
+VALIDATE() {
+    if [ "$1" -ne 0 ]; then
+        echo -e "$2 ... ${R}FAILURE${N}" | tee -a "$LOG_FILE"
         exit 1
     else
-        echo -e "$2 ... $G SUCCESS $N" | tee -a $LOG_FILE
+        echo -e "$2 ... ${G}SUCCESS${N}" | tee -a "$LOG_FILE"
     fi
 }
 
-cp mongo.repo /etc/yum.repos.d/mongo.repo
-VALIDATE $? "Adding Mongo repo"
+# Copy MongoDB repo file
+cp "$SCRIPT_DIR/mongo.repo" /etc/yum.repos.d/mongo.repo &>>"$LOG_FILE"
+VALIDATE $? "Adding MongoDB repo"
 
-dnf install mongodb-org -y &>>$LOG_FILE
+# Install MongoDB
+dnf install mongodb-org -y &>>"$LOG_FILE"
 VALIDATE $? "Installing MongoDB"
 
-systemctl enable mongod &>>$LOG_FILE
-VALIDATE $? "Enable MongoDB"
+# Enable MongoDB
+systemctl enable mongod &>>"$LOG_FILE"
+VALIDATE $? "Enabling MongoDB"
 
-systemctl start mongod 
-VALIDATE $? "Start MongoDB"
+# Start MongoDB
+systemctl start mongod &>>"$LOG_FILE"
+VALIDATE $? "Starting MongoDB"
 
-sed -i 's/127.0.0.1/0.0.0.0/g' /etc/mongod.conf
-VALIDATE $? "Allowing remote connections to MongoDB"
+# Allow remote connections
+sed -i 's/bindIp: 127.0.0.1/bindIp: 0.0.0.0/' /etc/mongod.conf &>>"$LOG_FILE"
+VALIDATE $? "Configuring MongoDB for remote access"
 
-systemctl restart mongod
-VALIDATE $? "Restarted MongoDB"
+# Restart MongoDB
+systemctl restart mongod &>>"$LOG_FILE"
+VALIDATE $? "Restarting MongoDB"
+
+echo -e "${G}MongoDB setup completed successfully${N}"
