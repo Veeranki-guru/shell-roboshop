@@ -98,7 +98,8 @@ dnf install mongodb-mongosh -y &>>"$LOG_FILE"
 VALIDATE $? "Installing MongoDB client"
 
 # Load schema
-mongosh --host "$MONGODB_HOST" </app/db/master-data.js &>>"$LOG_FILE"
+#mongosh --host "$MONGODB_HOST" </app/db/master-data.js &>>"$LOG_FILE"
+mongosh --host mongodb.rajesh86s.online </app/db/master-data.js
 VALIDATE $? "Loading catalogue products"
 
 # Restart service
