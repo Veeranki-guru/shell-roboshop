@@ -7,20 +7,22 @@ Y="\e[33m"
 N="\e[0m"
 
 LOGS_FOLDER="/var/log/shell-roboshop"
-SCRIPT_NAME=$( echo $0 | cut -d "." -f1 )
+SCRIPT_NAME=$(basename "$0" .sh)
 SCRIPT_DIR=$PWD
 MONGODB_HOST=mongodb.rajesh86s.online
-LOG_FILE="$LOGS_FOLDER/$SCRIPT_NAME.log" # /var/log/shell-script/16-logs.log
+LOG_FILE="$LOGS_FOLDER/$SCRIPT_NAME.log"
+
+START_TIME=$(date +%s)
 
 mkdir -p $LOGS_FOLDER
 echo "Script started executed at: $(date)" | tee -a $LOG_FILE
 
 if [ $USERID -ne 0 ]; then
-    echo "ERROR:: Please run this script with root privelege"
-    exit 1 # failure is other than 0
+    echo "ERROR:: Please run this script with root privilege"
+    exit 1
 fi
 
-VALIDATE(){ # functions receive inputs through args just like shell script args
+VALIDATE() {
     if [ $1 -ne 0 ]; then
         echo -e "$2 ... $R FAILURE $N" | tee -a $LOG_FILE
         exit 1
@@ -29,7 +31,6 @@ VALIDATE(){ # functions receive inputs through args just like shell script args
     fi
 }
 
-
 cp $SCRIPT_DIR/rabbitmq.repo /etc/yum.repos.d/rabbitmq.repo &>>$LOG_FILE
 VALIDATE $? "Adding RabbitMQ repo"
 
@@ -37,17 +38,18 @@ dnf install rabbitmq-server -y &>>$LOG_FILE
 VALIDATE $? "Install rabbitmq server"
 
 systemctl enable rabbitmq-server &>>$LOG_FILE
-VALIDATE $? "enable rabbitmq-server"
+VALIDATE $? "Enable rabbitmq server"
 
 systemctl start rabbitmq-server &>>$LOG_FILE
-VALIDATE $? "start rabbitmq server"
+VALIDATE $? "Start rabbitmq server"
 
 rabbitmqctl add_user roboshop roboshop123 &>>$LOG_FILE
-VALIDATE $? "add-user roboshop server"
+VALIDATE $? "Add user roboshop"
 
 rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*" &>>$LOG_FILE
-VALIDATE $? "set permission roboshop"
+VALIDATE $? "Set permissions for roboshop"
 
 END_TIME=$(date +%s)
-TOTAL_TIME=$(( $END_TIME - $START_TIME ))
+TOTAL_TIME=$((END_TIME - START_TIME))
+
 echo -e "Script executed in: $Y $TOTAL_TIME Seconds $N"
